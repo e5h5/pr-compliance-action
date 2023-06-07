@@ -140,7 +140,6 @@ const bodyFail = core.getBooleanInput('body-fail');
 const bodyRegexInput = core.getInput('body-regex');
 const bodyAutoClose = core.getBooleanInput('body-auto-close');
 const bodyComment = core.getInput('body-comment');
-const stagingBranch = core.getInput('staging-branch');
 const issueRegex = core.getInput('issue-regex');
 let protectedBranch = core.getInput('protected-branch');
 const protectedBranchAutoClose = core.getBooleanInput('protected-branch-auto-close');
@@ -201,8 +200,9 @@ function run() {
             core.setOutput('branch-check', branchCheck);
             core.setOutput('title-check', titleCheck);
             core.setOutput('watched-files-check', filesFlagged.length === 0);
-            if (branchCheck === false && protectedBranchAppendIssues === true) {
+            if (!branchCheck && protectedBranchAppendIssues) {
                 const commits = yield client.rest.pulls.listCommits(Object.assign(Object.assign({}, utils_1.context.repo), { pull_number: pr.number }));
+                core.debug(`Commits: ${JSON.stringify(commits)}`);
                 if (commits.data.length > 1) {
                     const commitsString = commits.data.reduce((acc, commitData) => {
                         const issueNumbers = RegExp(new RegExp(issueRegex, 'gm')).exec(commitData.commit.message);

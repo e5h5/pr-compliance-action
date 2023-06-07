@@ -23,7 +23,6 @@ const bodyFail = core.getBooleanInput('body-fail')
 const bodyRegexInput = core.getInput('body-regex')
 const bodyAutoClose = core.getBooleanInput('body-auto-close')
 const bodyComment = core.getInput('body-comment')
-const stagingBranch = core.getInput('staging-branch')
 const issueRegex = core.getInput('issue-regex')
 let protectedBranch = core.getInput('protected-branch')
 const protectedBranchAutoClose = core.getBooleanInput(
@@ -102,11 +101,13 @@ async function run(): Promise<void> {
     core.setOutput('title-check', titleCheck)
     core.setOutput('watched-files-check', filesFlagged.length === 0)
 
-    if (branchCheck === false && protectedBranchAppendIssues === true) {
+    if (!branchCheck && protectedBranchAppendIssues) {
       const commits = await client.rest.pulls.listCommits({
         ...context.repo,
         pull_number: pr.number
       })
+
+      core.debug(`Commits: ${JSON.stringify(commits)}`)
 
       if (commits.data.length > 1) {
         const commitsString = commits.data.reduce((acc, commitData) => {
