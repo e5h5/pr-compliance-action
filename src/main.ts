@@ -24,7 +24,6 @@ const bodyRegexInput = core.getInput('body-regex')
 const bodyAutoClose = core.getBooleanInput('body-auto-close')
 const bodyComment = core.getInput('body-comment')
 const stagingBranch = core.getInput('staging-branch')
-const developBranch = core.getInput('develop-branch')
 const issueRegex = core.getInput('issue-regex')
 let protectedBranch = core.getInput('protected-branch')
 const protectedBranchAutoClose = core.getBooleanInput(
@@ -100,12 +99,7 @@ async function run(): Promise<void> {
     core.setOutput('title-check', titleCheck)
     core.setOutput('watched-files-check', filesFlagged.length === 0)
 
-    if (
-      stagingBranch !== '' &&
-      developBranch !== '' &&
-      stagingBranch === branch &&
-      developBranch === ctx.payload.pull_request?.base?.ref
-    ) {
+    if (stagingBranch === branch) {
       const commits = await client.rest.pulls.listCommits({
         ...context.repo,
         pull_number: pr.number

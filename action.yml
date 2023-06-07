@@ -66,10 +66,6 @@ inputs:
     required: true
     description: 'Base branch to trigger adding issue numbers to PR description'
     default: ''
-  develop-branch:
-    required: true
-    description: 'Comparison branch to trigger adding issue numbers to PR description'
-    default: ''
   protected-branch:
     required: true
     description: 'Protected Branch'
