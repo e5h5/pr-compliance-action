@@ -200,6 +200,10 @@ function run() {
             core.setOutput('branch-check', branchCheck);
             core.setOutput('title-check', titleCheck);
             core.setOutput('watched-files-check', filesFlagged.length === 0);
+            core.debug(`Branch: ${branch}`);
+            core.debug(`Protected Branch: ${protectedBranch}`);
+            core.debug(`Branch Check: ${branchCheck.toString()}`);
+            core.debug(`protectedBranchAppendIssues: ${protectedBranchAppendIssues.toString()}`);
             if (!branchCheck && protectedBranchAppendIssues) {
                 const commits = yield client.rest.pulls.listCommits(Object.assign(Object.assign({}, utils_1.context.repo), { pull_number: pr.number }));
                 core.debug(`Commits: ${JSON.stringify(commits)}`);

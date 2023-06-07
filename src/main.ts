@@ -101,6 +101,13 @@ async function run(): Promise<void> {
     core.setOutput('title-check', titleCheck)
     core.setOutput('watched-files-check', filesFlagged.length === 0)
 
+    core.debug(`Branch: ${branch}`)
+    core.debug(`Protected Branch: ${protectedBranch}`)
+    core.debug(`Branch Check: ${branchCheck.toString()}`)
+    core.debug(
+      `protectedBranchAppendIssues: ${protectedBranchAppendIssues.toString()}`
+    )
+
     if (!branchCheck && protectedBranchAppendIssues) {
       const commits = await client.rest.pulls.listCommits({
         ...context.repo,
