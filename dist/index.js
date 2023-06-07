@@ -66,7 +66,7 @@ function checkTitle(title) {
             if (!defaultTypes.includes(result.type))
                 errors.push({
                     valid: false,
-                    message: `Found type "${result.type}", must be one of "${defaultTypes.join('","')}"`
+                    message: `Found type "${result.type}", must be one of "${defaultTypes.join('", "')}"`
                 });
             if (!result.subject)
                 errors.push({ valid: false, message: 'No subject found' });
