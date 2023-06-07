@@ -200,13 +200,9 @@ async function updateReview(
 ) {
   const review = await findExistingReview(pullRequest)
   // if blank body and no existing review, exit
-  if (body === '' || review === null) return
-
-  await client.rest.pulls.deleteReviewComment({
-    ...pullRequest,
-    comment_id: review?.id
-  })
-
+  if (body === '' && review === null) return
+  // if review body same as new body, exit
+  if (body === review?.body) return
   // if no existing review, body non blank, create a review
   if (review === null && body !== '') {
     await client.rest.pulls.createReview({
@@ -214,6 +210,25 @@ async function updateReview(
       body,
       event: 'COMMENT'
     })
+    return
+  }
+  // if body blank and review exists, update it to show passed
+  if (review !== null && body === '') {
+    await client.rest.pulls.updateReview({
+      ...pullRequest,
+      review_id: review.id,
+      body: 'PR Compliance Checks Passed!'
+    })
+    return
+  }
+  // if body non-blank and review exists, update it
+  if (review !== null && body !== review?.body) {
+    await client.rest.pulls.updateReview({
+      ...pullRequest,
+      review_id: review.id,
+      body
+    })
+    return
   }
 }
 async function userIsTeamMember(login: string, owner: string) {
