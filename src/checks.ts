@@ -8,7 +8,7 @@ type LintRuleOutcome = {
 }
 
 function checkBody(body: string, regexString: string): boolean {
-  const regex = new RegExp(regexString, 'mi')
+  const regex = new RegExp(regexString, 'm')
   const bodyNoComments = body.replace(/<!--(.*?)-->/gms, '')
   return regex.test(bodyNoComments)
 }
