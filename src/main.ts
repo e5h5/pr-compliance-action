@@ -101,10 +101,10 @@ async function run(): Promise<void> {
     core.setOutput('title-check', titleCheck)
     core.setOutput('watched-files-check', filesFlagged.length === 0)
 
-    core.debug(`Branch: ${branch}`)
-    core.debug(`Protected Branch: ${protectedBranch}`)
-    core.debug(`Branch Check: ${branchCheck.toString()}`)
-    core.debug(
+    core.info(`Branch: ${branch}`)
+    core.info(`Protected Branch: ${protectedBranch}`)
+    core.info(`Branch Check: ${branchCheck.toString()}`)
+    core.info(
       `protectedBranchAppendIssues: ${protectedBranchAppendIssues.toString()}`
     )
 
@@ -114,7 +114,7 @@ async function run(): Promise<void> {
         pull_number: pr.number
       })
 
-      core.debug(`Commits: ${JSON.stringify(commits)}`)
+      core.info(`Commits: ${JSON.stringify(commits)}`)
 
       if (commits.data.length > 1) {
         const commitsString = commits.data.reduce((acc, commitData) => {
