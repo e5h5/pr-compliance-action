@@ -152,7 +152,7 @@ const filesToWatch = core.getMultilineInput('watch-files');
 const watchedFilesComment = core.getInput('watch-files-comment');
 const client = github.getOctokit(repoToken);
 function run() {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const ctx = github.context;
@@ -206,14 +206,17 @@ function run() {
                 protectedTargetBranchAppendIssues) {
                 const commits = yield client.rest.pulls.listCommits(Object.assign(Object.assign({}, utils_1.context.repo), { pull_number: pr.number }));
                 if (commits.data.length > 1) {
+                    const issuesListPrefix = 'References issues: ';
                     const commitsString = commits.data.reduce((acc, commitData) => {
                         const issueNumbers = RegExp(new RegExp(issueRegex, 'gm')).exec(commitData.commit.message);
                         return issueNumbers ? `${acc} ${issueNumbers.join(' ')}` : acc;
-                    }, 'References issues: ');
+                    }, issuesListPrefix);
                     const prBody = (_w = (_v = utils_1.context.payload.pull_request) === null || _v === void 0 ? void 0 : _v.body) !== null && _w !== void 0 ? _w : '';
-                    if (!prBody.includes(commitsString)) {
-                        yield client.rest.pulls.update(Object.assign(Object.assign({}, utils_1.context.repo), { pull_number: pr.number, body: `${(_y = (_x = utils_1.context.payload.pull_request) === null || _x === void 0 ? void 0 : _x.body) !== null && _y !== void 0 ? _y : ''}\n\n${commitsString}` }));
+                    let newBody = `${prBody}\n\n${commitsString}`;
+                    if (prBody.includes(issuesListPrefix)) {
+                        newBody = prBody.replace(new RegExp(`${issuesListPrefix}.*`, 'gm'), commitsString);
                     }
+                    yield client.rest.pulls.update(Object.assign(Object.assign({}, utils_1.context.repo), { pull_number: pr.number, body: newBody }));
                     return;
                 }
             }

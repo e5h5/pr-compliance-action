@@ -113,24 +113,31 @@ async function run(): Promise<void> {
       })
 
       if (commits.data.length > 1) {
+        const issuesListPrefix = 'References issues: '
+
         const commitsString = commits.data.reduce((acc, commitData) => {
           const issueNumbers = RegExp(new RegExp(issueRegex, 'gm')).exec(
             commitData.commit.message
           )
           return issueNumbers ? `${acc} ${issueNumbers.join(' ')}` : acc
-        }, 'References issues: ')
+        }, issuesListPrefix)
 
         const prBody = context.payload.pull_request?.body ?? ''
 
-        if (!prBody.includes(commitsString)) {
-          await client.rest.pulls.update({
-            ...context.repo,
-            pull_number: pr.number,
-            body: `${
-              context.payload.pull_request?.body ?? ''
-            }\n\n${commitsString}`
-          })
+        let newBody = `${prBody}\n\n${commitsString}`
+
+        if (prBody.includes(issuesListPrefix)) {
+          newBody = prBody.replace(
+            new RegExp(`${issuesListPrefix}.*`, 'gm'),
+            commitsString
+          )
         }
+
+        await client.rest.pulls.update({
+          ...context.repo,
+          pull_number: pr.number,
+          body: newBody
+        })
         return
       }
     }
