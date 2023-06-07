@@ -23,6 +23,9 @@ const bodyFail = core.getBooleanInput('body-fail')
 const bodyRegexInput = core.getInput('body-regex')
 const bodyAutoClose = core.getBooleanInput('body-auto-close')
 const bodyComment = core.getInput('body-comment')
+const stagingBranch = core.getInput('staging-branch')
+const developBranch = core.getInput('develop-branch')
+const issueRegex = core.getInput('issue-regex')
 let protectedBranch = core.getInput('protected-branch')
 const protectedBranchAutoClose = core.getBooleanInput(
   'protected-branch-auto-close'
@@ -96,7 +99,38 @@ async function run(): Promise<void> {
     core.setOutput('branch-check', branchCheck)
     core.setOutput('title-check', titleCheck)
     core.setOutput('watched-files-check', filesFlagged.length === 0)
+
+    if (
+      stagingBranch !== '' &&
+      developBranch !== '' &&
+      stagingBranch === branch &&
+      developBranch === ctx.payload.pull_request?.base?.ref
+    ) {
+      const commits = await client.rest.pulls.listCommits({
+        ...context.repo,
+        pull_number: pr.number
+      })
+
+      if (commits.data.length > 1) {
+        const commitsString = commits.data.reduce((acc, commitData) => {
+          const issueNumbers = commitData.commit.message.match(
+            new RegExp(issueRegex, 'gm')
+          )
+          return issueNumbers ? `${acc} ${issueNumbers.join(' ')}` : acc
+        }, 'References issues: ')
+        await client.rest.pulls.update({
+          ...context.repo,
+          pull_number: pr.number,
+          body: `${
+            context.payload.pull_request?.body || ''
+          }\n\n${commitsString}`
+        })
+        return
+      }
+    }
+
     const commentsToLeave = []
+
     if (!prCompliant) {
       // Handle failed body check
       if (!bodyCheck) {

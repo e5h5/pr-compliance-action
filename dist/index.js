@@ -140,6 +140,9 @@ const bodyFail = core.getBooleanInput('body-fail');
 const bodyRegexInput = core.getInput('body-regex');
 const bodyAutoClose = core.getBooleanInput('body-auto-close');
 const bodyComment = core.getInput('body-comment');
+const stagingBranch = core.getInput('staging-branch');
+const developBranch = core.getInput('develop-branch');
+const issueRegex = core.getInput('issue-regex');
 let protectedBranch = core.getInput('protected-branch');
 const protectedBranchAutoClose = core.getBooleanInput('protected-branch-auto-close');
 const protectedBranchComment = core.getInput('protected-branch-comment');
@@ -149,7 +152,7 @@ const filesToWatch = core.getMultilineInput('watch-files');
 const watchedFilesComment = core.getInput('watch-files-comment');
 const client = github.getOctokit(repoToken);
 function run() {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const ctx = github.context;
@@ -198,6 +201,20 @@ function run() {
             core.setOutput('branch-check', branchCheck);
             core.setOutput('title-check', titleCheck);
             core.setOutput('watched-files-check', filesFlagged.length === 0);
+            if (stagingBranch !== '' &&
+                developBranch !== '' &&
+                stagingBranch === branch &&
+                developBranch === ((_t = (_s = ctx.payload.pull_request) === null || _s === void 0 ? void 0 : _s.base) === null || _t === void 0 ? void 0 : _t.ref)) {
+                const commits = yield client.rest.pulls.listCommits(Object.assign(Object.assign({}, utils_1.context.repo), { pull_number: pr.number }));
+                if (commits.data.length > 1) {
+                    const commitsString = commits.data.reduce((acc, commitData) => {
+                        const issueNumbers = commitData.commit.message.match(new RegExp(issueRegex, 'gm'));
+                        return issueNumbers ? `${acc} ${issueNumbers.join(' ')}` : acc;
+                    }, 'References issues: ');
+                    yield client.rest.pulls.update(Object.assign(Object.assign({}, utils_1.context.repo), { pull_number: pr.number, body: `${((_u = utils_1.context.payload.pull_request) === null || _u === void 0 ? void 0 : _u.body) || ''}\n\n${commitsString}` }));
+                    return;
+                }
+            }
             const commentsToLeave = [];
             if (!prCompliant) {
                 // Handle failed body check
