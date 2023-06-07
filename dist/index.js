@@ -47,7 +47,7 @@ const conventional_changelog_conventionalcommits_1 = __importDefault(__nccwpck_r
 const conventionalTypes = __importStar(__nccwpck_require__(9682));
 const conventional_commits_parser_1 = __nccwpck_require__(1655);
 function checkBody(body, regexString) {
-    const regex = new RegExp(regexString, 'mi');
+    const regex = new RegExp(regexString, 'm');
     const bodyNoComments = body.replace(/<!--(.*?)-->/gms, '');
     return regex.test(bodyNoComments);
 }
