@@ -62,10 +62,10 @@ inputs:
 
       The check is looking for a phrase similar to: "Fixes #XYZ" or "Resolves #XYZ" where XYZ is the issue
       number that this PR is meant to address.
-  staging-branch:
+  protected-branch-append-issues:
     required: true
-    description: 'Base branch to trigger adding issue numbers to PR description'
-    default: ''
+    description: 'Append issue numbers to PR description for protected branch'
+    default: false
   protected-branch:
     required: true
     description: 'Protected Branch'

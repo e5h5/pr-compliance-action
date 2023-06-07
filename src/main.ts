@@ -29,6 +29,9 @@ let protectedBranch = core.getInput('protected-branch')
 const protectedBranchAutoClose = core.getBooleanInput(
   'protected-branch-auto-close'
 )
+const protectedBranchAppendIssues = core.getBooleanInput(
+  'protected-branch-append-issues'
+)
 const protectedBranchComment = core.getInput('protected-branch-comment')
 const titleComment = core.getInput('title-comment')
 const titleCheckEnable = core.getBooleanInput('title-check-enable')
@@ -99,7 +102,7 @@ async function run(): Promise<void> {
     core.setOutput('title-check', titleCheck)
     core.setOutput('watched-files-check', filesFlagged.length === 0)
 
-    if (stagingBranch === branch) {
+    if (branchCheck === false && protectedBranchAppendIssues === true) {
       const commits = await client.rest.pulls.listCommits({
         ...context.repo,
         pull_number: pr.number
@@ -107,8 +110,8 @@ async function run(): Promise<void> {
 
       if (commits.data.length > 1) {
         const commitsString = commits.data.reduce((acc, commitData) => {
-          const issueNumbers = commitData.commit.message.match(
-            new RegExp(issueRegex, 'gm')
+          const issueNumbers = RegExp(new RegExp(issueRegex, 'gm')).exec(
+            commitData.commit.message
           )
           return issueNumbers ? `${acc} ${issueNumbers.join(' ')}` : acc
         }, 'References issues: ')
@@ -116,7 +119,7 @@ async function run(): Promise<void> {
           ...context.repo,
           pull_number: pr.number,
           body: `${
-            context.payload.pull_request?.body || ''
+            context.payload.pull_request?.body ?? ''
           }\n\n${commitsString}`
         })
         return
