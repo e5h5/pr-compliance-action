@@ -289,25 +289,12 @@ function updateReview(pullRequest, body) {
     return __awaiter(this, void 0, void 0, function* () {
         const review = yield findExistingReview(pullRequest);
         // if blank body and no existing review, exit
-        if (body === '' && review === null)
+        if (body === '' || review === null)
             return;
-        // if review body same as new body, exit
-        if (body === (review === null || review === void 0 ? void 0 : review.body))
-            return;
+        yield client.rest.pulls.deleteReviewComment(Object.assign(Object.assign({}, pullRequest), { comment_id: review === null || review === void 0 ? void 0 : review.id }));
         // if no existing review, body non blank, create a review
         if (review === null && body !== '') {
             yield client.rest.pulls.createReview(Object.assign(Object.assign({}, pullRequest), { body, event: 'COMMENT' }));
-            return;
-        }
-        // if body blank and review exists, update it to show passed
-        if (review !== null && body === '') {
-            yield client.rest.pulls.updateReview(Object.assign(Object.assign({}, pullRequest), { review_id: review.id, body: 'PR Compliance Checks Passed!' }));
-            return;
-        }
-        // if body non-blank and review exists, update it
-        if (review !== null && body !== (review === null || review === void 0 ? void 0 : review.body)) {
-            yield client.rest.pulls.updateReview(Object.assign(Object.assign({}, pullRequest), { review_id: review.id, body }));
-            return;
         }
     });
 }
