@@ -30,7 +30,7 @@ async function checkTitle(
         valid: false,
         message: `Found type "${
           result.type
-        }", must be one of "${defaultTypes.join('", "')}"`
+        }", must be one of "${defaultTypes.join('", "')}".`
       })
     if (!result.subject)
       errors.push({valid: false, message: 'No subject found'})
