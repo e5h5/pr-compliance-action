@@ -28,8 +28,9 @@ let protectedBranch = core.getInput('protected-branch')
 const protectedBranchAutoClose = core.getBooleanInput(
   'protected-branch-auto-close'
 )
-const protectedBranchAppendIssues = core.getBooleanInput(
-  'protected-branch-append-issues'
+const protectedTargetBranch = core.getInput('protected-target-branch')
+const protectedTargetBranchAppendIssues = core.getBooleanInput(
+  'protected-target-branch-append-issues'
 )
 const protectedBranchComment = core.getInput('protected-branch-comment')
 const titleComment = core.getInput('title-comment')
@@ -80,6 +81,7 @@ async function run(): Promise<void> {
     const body = ctx.payload.pull_request?.body ?? ''
     const title = ctx.payload.pull_request?.title ?? ''
     const branch = ctx.payload.pull_request?.head?.ref ?? ''
+    const targetBranch = ctx.payload.pull_request?.base?.ref ?? ''
     const filesModified = await listFiles({...pr, pull_number: pr.number})
     // bodyCheck passes if the author is to be ignored or if the check function passes
     const bodyCheck = checkBody(body, bodyRegexInput)
@@ -101,14 +103,17 @@ async function run(): Promise<void> {
     core.setOutput('title-check', titleCheck)
     core.setOutput('watched-files-check', filesFlagged.length === 0)
 
-    core.info(`Branch: ${branch}`)
-    core.info(`Protected Branch: ${protectedBranch}`)
+    core.info(`Target Branch: ${targetBranch}`)
+    core.info(`Protected Target Branch: ${protectedTargetBranch}`)
     core.info(`Branch Check: ${branchCheck.toString()}`)
     core.info(
-      `protectedBranchAppendIssues: ${protectedBranchAppendIssues.toString()}`
+      `protectedTargetBranchAppendIssues: ${protectedTargetBranchAppendIssues.toString()}`
     )
 
-    if (!branchCheck && protectedBranchAppendIssues) {
+    if (
+      targetBranch === protectedTargetBranch &&
+      protectedTargetBranchAppendIssues
+    ) {
       const commits = await client.rest.pulls.listCommits({
         ...context.repo,
         pull_number: pr.number

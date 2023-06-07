@@ -62,10 +62,14 @@ inputs:
 
       The check is looking for a phrase similar to: "Fixes #XYZ" or "Resolves #XYZ" where XYZ is the issue
       number that this PR is meant to address.
-  protected-branch-append-issues:
+  protected-target-branch-append-issues:
     required: true
-    description: 'Append issue numbers to PR description for protected branch'
+    description: 'Append issue numbers to PR description for protected branch. Skips all other checks when protected target branch is set as base and this is enabled.'
     default: false
+  protected-target-branch:
+    required: true
+    description: 'Protected target branch'
+    default: ''
   protected-branch:
     required: true
     description: 'Protected Branch'

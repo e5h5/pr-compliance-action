@@ -143,7 +143,8 @@ const bodyComment = core.getInput('body-comment');
 const issueRegex = core.getInput('issue-regex');
 let protectedBranch = core.getInput('protected-branch');
 const protectedBranchAutoClose = core.getBooleanInput('protected-branch-auto-close');
-const protectedBranchAppendIssues = core.getBooleanInput('protected-branch-append-issues');
+const protectedTargetBranch = core.getInput('protected-target-branch');
+const protectedTargetBranchAppendIssues = core.getBooleanInput('protected-target-branch-append-issues');
 const protectedBranchComment = core.getInput('protected-branch-comment');
 const titleComment = core.getInput('title-comment');
 const titleCheckEnable = core.getBooleanInput('title-check-enable');
@@ -151,7 +152,7 @@ const filesToWatch = core.getMultilineInput('watch-files');
 const watchedFilesComment = core.getInput('watch-files-comment');
 const client = github.getOctokit(repoToken);
 function run() {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const ctx = github.context;
@@ -182,6 +183,7 @@ function run() {
             const body = (_l = (_k = ctx.payload.pull_request) === null || _k === void 0 ? void 0 : _k.body) !== null && _l !== void 0 ? _l : '';
             const title = (_o = (_m = ctx.payload.pull_request) === null || _m === void 0 ? void 0 : _m.title) !== null && _o !== void 0 ? _o : '';
             const branch = (_r = (_q = (_p = ctx.payload.pull_request) === null || _p === void 0 ? void 0 : _p.head) === null || _q === void 0 ? void 0 : _q.ref) !== null && _r !== void 0 ? _r : '';
+            const targetBranch = (_u = (_t = (_s = ctx.payload.pull_request) === null || _s === void 0 ? void 0 : _s.base) === null || _t === void 0 ? void 0 : _t.ref) !== null && _u !== void 0 ? _u : '';
             const filesModified = yield listFiles(Object.assign(Object.assign({}, pr), { pull_number: pr.number }));
             // bodyCheck passes if the author is to be ignored or if the check function passes
             const bodyCheck = (0, checks_1.checkBody)(body, bodyRegexInput);
@@ -200,11 +202,12 @@ function run() {
             core.setOutput('branch-check', branchCheck);
             core.setOutput('title-check', titleCheck);
             core.setOutput('watched-files-check', filesFlagged.length === 0);
-            core.info(`Branch: ${branch}`);
-            core.info(`Protected Branch: ${protectedBranch}`);
+            core.info(`Target Branch: ${targetBranch}`);
+            core.info(`Protected Target Branch: ${protectedTargetBranch}`);
             core.info(`Branch Check: ${branchCheck.toString()}`);
-            core.info(`protectedBranchAppendIssues: ${protectedBranchAppendIssues.toString()}`);
-            if (!branchCheck && protectedBranchAppendIssues) {
+            core.info(`protectedTargetBranchAppendIssues: ${protectedTargetBranchAppendIssues.toString()}`);
+            if (targetBranch === protectedTargetBranch &&
+                protectedTargetBranchAppendIssues) {
                 const commits = yield client.rest.pulls.listCommits(Object.assign(Object.assign({}, utils_1.context.repo), { pull_number: pr.number }));
                 core.info(`Commits: ${JSON.stringify(commits)}`);
                 if (commits.data.length > 1) {
@@ -212,7 +215,7 @@ function run() {
                         const issueNumbers = RegExp(new RegExp(issueRegex, 'gm')).exec(commitData.commit.message);
                         return issueNumbers ? `${acc} ${issueNumbers.join(' ')}` : acc;
                     }, 'References issues: ');
-                    yield client.rest.pulls.update(Object.assign(Object.assign({}, utils_1.context.repo), { pull_number: pr.number, body: `${(_t = (_s = utils_1.context.payload.pull_request) === null || _s === void 0 ? void 0 : _s.body) !== null && _t !== void 0 ? _t : ''}\n\n${commitsString}` }));
+                    yield client.rest.pulls.update(Object.assign(Object.assign({}, utils_1.context.repo), { pull_number: pr.number, body: `${(_w = (_v = utils_1.context.payload.pull_request) === null || _v === void 0 ? void 0 : _v.body) !== null && _w !== void 0 ? _w : ''}\n\n${commitsString}` }));
                     return;
                 }
             }
