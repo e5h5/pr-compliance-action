@@ -103,13 +103,6 @@ async function run(): Promise<void> {
     core.setOutput('title-check', titleCheck)
     core.setOutput('watched-files-check', filesFlagged.length === 0)
 
-    core.info(`Target Branch: ${targetBranch}`)
-    core.info(`Protected Target Branch: ${protectedTargetBranch}`)
-    core.info(`Branch Check: ${branchCheck.toString()}`)
-    core.info(
-      `protectedTargetBranchAppendIssues: ${protectedTargetBranchAppendIssues.toString()}`
-    )
-
     if (
       targetBranch === protectedTargetBranch &&
       protectedTargetBranchAppendIssues
@@ -119,8 +112,6 @@ async function run(): Promise<void> {
         pull_number: pr.number
       })
 
-      core.info(`Commits: ${JSON.stringify(commits)}`)
-
       if (commits.data.length > 1) {
         const commitsString = commits.data.reduce((acc, commitData) => {
           const issueNumbers = RegExp(new RegExp(issueRegex, 'gm')).exec(
@@ -128,13 +119,18 @@ async function run(): Promise<void> {
           )
           return issueNumbers ? `${acc} ${issueNumbers.join(' ')}` : acc
         }, 'References issues: ')
-        await client.rest.pulls.update({
-          ...context.repo,
-          pull_number: pr.number,
-          body: `${
-            context.payload.pull_request?.body ?? ''
-          }\n\n${commitsString}`
-        })
+
+        const prBody = context.payload.pull_request?.body ?? ''
+
+        if (!prBody.includes(commitsString)) {
+          await client.rest.pulls.update({
+            ...context.repo,
+            pull_number: pr.number,
+            body: `${
+              context.payload.pull_request?.body ?? ''
+            }\n\n${commitsString}`
+          })
+        }
         return
       }
     }

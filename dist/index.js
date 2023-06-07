@@ -152,7 +152,7 @@ const filesToWatch = core.getMultilineInput('watch-files');
 const watchedFilesComment = core.getInput('watch-files-comment');
 const client = github.getOctokit(repoToken);
 function run() {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const ctx = github.context;
@@ -202,20 +202,18 @@ function run() {
             core.setOutput('branch-check', branchCheck);
             core.setOutput('title-check', titleCheck);
             core.setOutput('watched-files-check', filesFlagged.length === 0);
-            core.info(`Target Branch: ${targetBranch}`);
-            core.info(`Protected Target Branch: ${protectedTargetBranch}`);
-            core.info(`Branch Check: ${branchCheck.toString()}`);
-            core.info(`protectedTargetBranchAppendIssues: ${protectedTargetBranchAppendIssues.toString()}`);
             if (targetBranch === protectedTargetBranch &&
                 protectedTargetBranchAppendIssues) {
                 const commits = yield client.rest.pulls.listCommits(Object.assign(Object.assign({}, utils_1.context.repo), { pull_number: pr.number }));
-                core.info(`Commits: ${JSON.stringify(commits)}`);
                 if (commits.data.length > 1) {
                     const commitsString = commits.data.reduce((acc, commitData) => {
                         const issueNumbers = RegExp(new RegExp(issueRegex, 'gm')).exec(commitData.commit.message);
                         return issueNumbers ? `${acc} ${issueNumbers.join(' ')}` : acc;
                     }, 'References issues: ');
-                    yield client.rest.pulls.update(Object.assign(Object.assign({}, utils_1.context.repo), { pull_number: pr.number, body: `${(_w = (_v = utils_1.context.payload.pull_request) === null || _v === void 0 ? void 0 : _v.body) !== null && _w !== void 0 ? _w : ''}\n\n${commitsString}` }));
+                    const prBody = (_w = (_v = utils_1.context.payload.pull_request) === null || _v === void 0 ? void 0 : _v.body) !== null && _w !== void 0 ? _w : '';
+                    if (!prBody.includes(commitsString)) {
+                        yield client.rest.pulls.update(Object.assign(Object.assign({}, utils_1.context.repo), { pull_number: pr.number, body: `${(_y = (_x = utils_1.context.payload.pull_request) === null || _x === void 0 ? void 0 : _x.body) !== null && _y !== void 0 ? _y : ''}\n\n${commitsString}` }));
+                    }
                     return;
                 }
             }
